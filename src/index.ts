@@ -1,38 +1,49 @@
-import { commands, CompleteResult, ExtensionContext, LanguageClient, LanguageClientOptions, services, window, workspace } from 'coc.nvim';
+import { commands, ExtensionContext, LanguageClient, LanguageClientOptions, RequestType, ServerOptions, services, window, workspace } from 'coc.nvim';
+import {ExecuteCommandParams, ExecuteCommandRegistrationOptions} from 'vscode-languageserver-protocol';
+import * as fs from 'fs'
+
+export declare namespace ExecuteCommandRequest {
+    const type: RequestType<ExecuteCommandParams, any, void, ExecuteCommandRegistrationOptions>;
+}
 
 export async function activate(context: ExtensionContext): Promise<void> {
 
-  window.showMessage ("Configuration: ");
   let options = workspace.getConfiguration("ada");
-  window.showMessage (JSON.stringify(options));
+  if (!options.get<boolean>("enable", true)) {
+    return;
+  }
 
-  const serverOptions = {
+  let projectFile = options.get<string>("projectFile", "");
+
+  if (projectFile != "" && !fs.existsSync(projectFile)) {
+    window.showErrorMessage(`Couldn't find project file '${projectFile}'`);
+    return;
+  }
+
+  let projectFileInCurrentDir = fs.readdirSync('.').find((element)=> {
+    element.endsWith(".gpr");
+  });
+
+  if (projectFileInCurrentDir !== undefined) {
+    window.showMessage("Using '" + projectFileInCurrentDir + "' as project file");
+  };
+
+  const serverOptions : ServerOptions = {
     command: 'ada_language_server',
   }
+
   const clientOption : LanguageClientOptions = {
-    documentSelector: ['ada']
-  }
+    documentSelector: ['ada'],
+    synchronize: {
+      configurationSection: 'ada'
+    }
+  };
   const client = new LanguageClient(
     'coc-als',
     'ada_language_server',
     serverOptions,
     clientOption
   )
-  // window.showMessage(`coc-als works!`);
-  // function otherFileHandler() {
-      // const activeEditor = window.;
-      // if (!activeEditor) {
-          // return;
-      // }
-      // void client.sendRequest(languageclient.ExecuteCommandRequest.type, {
-          // command: 'als-other-file',
-          // arguments: [
-              // {
-                  // uri: window.document.uri.toString(),
-              // },
-          // ],
-      // });
-  // }
 
   context.subscriptions.push(services.registLanguageClient(client))
   context.subscriptions.push(
@@ -41,35 +52,17 @@ export async function activate(context: ExtensionContext): Promise<void> {
       let file = document.uri
 
       window.showMessage(`coc-als Commands works! ${file}`);
-      workspace.loadFile(`${file}.tmp`);
+      let whatever = await client.sendRequest (ExecuteCommandRequest.type, {
+        command: 'als-other-file',
+          arguments : [
+            {
+              uri: file,
+            }
+          ]
+      });
+
+      window.showMessage(JSON.stringify(whatever));
     }),
-
-    // listManager.registerList(new DemoList(workspace.nvim)),
-
-    // sources.createSource({
-      // name: 'coc-als completion source', // unique id
-      // doComplete: async () => {
-        // const items = await getCompletionItems();
-        // return items;
-      // },
-    // }),
-
-    // workspace.registerKeymap(
-      // ['n'],
-      // 'als-keymap',
-      // async () => {
-        // window.showMessage(`registerKeymap`);
-      // },
-      // { sync: false }
-    // ),
-
-    // workspace.registerAutocmd({
-      // event: 'InsertLeave',
-      // request: true,
-      // callback: () => {
-        // window.showMessage(`registerAutocmd on InsertLeave`);
-      // },
-    // })
   );
 }
 
