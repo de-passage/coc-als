@@ -2,10 +2,6 @@ import { commands, ExtensionContext, LanguageClient, LanguageClientOptions, Requ
 import {ExecuteCommandParams, ExecuteCommandRegistrationOptions} from 'vscode-languageserver-protocol';
 import * as fs from 'fs'
 
-export declare namespace ExecuteCommandRequest {
-    const type: RequestType<ExecuteCommandParams, any, void, ExecuteCommandRegistrationOptions>;
-}
-
 export async function activate(context: ExtensionContext): Promise<void> {
 
   let options = workspace.getConfiguration("ada");
@@ -37,7 +33,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
     synchronize: {
       configurationSection: 'ada'
     }
-  };
+  }
   const client = new LanguageClient(
     'coc-als',
     'ada_language_server',
@@ -46,22 +42,25 @@ export async function activate(context: ExtensionContext): Promise<void> {
   )
 
   context.subscriptions.push(services.registLanguageClient(client))
+
+  const type = new RequestType<ExecuteCommandParams, any, void, ExecuteCommandRegistrationOptions>("workspace/executeCommand");
   context.subscriptions.push(
     commands.registerCommand('ada.otherFile', async () => {
       let document = await workspace.document;
       let file = document.uri
 
-      window.showMessage(`coc-als Commands works! ${file}`);
-      let whatever = await client.sendRequest (ExecuteCommandRequest.type, {
+      let result = await client.sendRequest(type, {
         command: 'als-other-file',
-          arguments : [
-            {
-              uri: file,
-            }
-          ]
+        arguments: [
+          {
+            uri: file,
+          }
+        ]
       });
 
-      window.showMessage(JSON.stringify(whatever));
+      if (result === null) {
+        window.showMessage("No matching file");
+      }
     }),
   );
 }
