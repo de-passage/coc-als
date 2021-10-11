@@ -41,27 +41,31 @@ export async function activate(context: ExtensionContext): Promise<void> {
     clientOption
   )
 
+  const jumpToOtherFile = async () => {
+    let document = await workspace.document;
+    let file = document.uri
+
+    await client.sendRequest(type, {
+      command: 'als-other-file',
+      arguments: [
+        {
+          uri: file,
+        }
+      ]
+    });
+  };
+
   context.subscriptions.push(services.registLanguageClient(client))
 
   const type = new RequestType<ExecuteCommandParams, any, void, ExecuteCommandRegistrationOptions>("workspace/executeCommand");
   context.subscriptions.push(
-    commands.registerCommand('ada.otherFile', async () => {
-      let document = await workspace.document;
-      let file = document.uri
-
-      let result = await client.sendRequest(type, {
-        command: 'als-other-file',
-        arguments: [
-          {
-            uri: file,
-          }
-        ]
-      });
-
-      if (result === null) {
-        window.showMessage("No matching file");
-      }
-    }),
+    commands.registerCommand('ada.otherFile', jumpToOtherFile),
+  );
+  workspace.registerKeymap(
+    ['n'],
+    'als-other-file',
+    jumpToOtherFile,
+    {sync: false}
   );
 }
 
