@@ -1,13 +1,13 @@
-import { commands, ExtensionContext, LanguageClient, LanguageClientOptions, listManager, Location, Range, RequestType, ServerOptions, services, TextDocumentIdentifier, window, workspace } from 'coc.nvim';
+import { commands, ExtensionContext, LanguageClient, LanguageClientOptions, Location, Range, RequestType, ServerOptions, services, window, workspace } from 'coc.nvim';
 import * as coc from 'coc.nvim'
 import {DocumentUri, ExecuteCommandParams, ExecuteCommandRegistrationOptions, TextDocumentPositionParams} from 'vscode-languageserver-protocol';
-import * as lsp from 'vscode-languageserver-protocol'
 import * as fs from 'fs'
+import {DependencyList, ALS_ShowDependenciesKind} from './lists';
 
 const executeCommandType = new RequestType<ExecuteCommandParams, any, void, ExecuteCommandRegistrationOptions>("workspace/executeCommand");
 
 interface ALSSubprogramAndReferences {
-  loc: Location;
+  location: Location;
   name : string;
 
   refs: Location[];
@@ -15,26 +15,6 @@ interface ALSSubprogramAndReferences {
 
 const requestCalledBy = new RequestType<TextDocumentPositionParams, ALSSubprogramAndReferences[], void>("textDocument/alsCalledBy");
 const requestCalls = new RequestType<TextDocumentPositionParams, ALSSubprogramAndReferences[], void>("textDocument/alsCalls");
-
-
-namespace ALS_ShowDependenciesKind {
-  export type Kind = number;
-  export const Show_Imported : Kind = 1;
-  export const Show_Importing : Kind = 2;
-}
-
-interface ALS_ShowDependenciesParams {
-  textDocument : TextDocumentIdentifier; /* The queried unit */
-  kind         : ALS_ShowDependenciesKind.Kind; /* The dependencies query kind */
-  showImplicit : boolean; /* True if implicit dependencies should be returned */
-}
-
-interface ALS_Unit_Description {
-  uri        : DocumentUri; /* The dependency unit's file */
-  projectUri : DocumentUri; /* The dependency's project file */
-}
-
-const requestshowDependencies = new RequestType<ALS_ShowDependenciesParams, ALS_Unit_Description[], void>("textDocument/alsShowDependencies");
 
 export type AlsReferenceKind = 'write' | 'access' | 'call' | 'dispatching call' | 'parent' | 'child';
 
@@ -93,41 +73,31 @@ export async function activate(context: ExtensionContext): Promise<void> {
 
   context.subscriptions.push(services.registLanguageClient(client))
 
-  const calledBy = async () => {
-    let document = await workspace.document;
-    let cursor = await window.getCursorPosition();
+  const makeCallRequest = (request : RequestType<TextDocumentPositionParams, ALSSubprogramAndReferences[], void>) => {
+    return async () => {
+      let dc = await Promise.all<coc.Document, coc.Position>([workspace.document, window.getCursorPosition()])
+      let document : coc.Document = dc[0];
+      let cursor : coc.Position = dc[1];
 
-    let r = await client.sendRequest(requestCalledBy, {
-      textDocument: document.textDocument,
-      position: cursor ,
-    });
+      let r = await client.sendRequest(request, {
+        textDocument: document.textDocument,
+        position: cursor ,
+      });
 
-    if (!r) {
-      window.showErrorMessage("command failed");
-    }
+      if (!r) {
+        window.showErrorMessage("command failed");
+        return;
+      } else if (r.length === 0) {
+        window.showMessage("Nothing found");
+        return;
+      }
 
-    window.showMessage(JSON.stringify(r));
-
+      commands.executeCommand('editor.action.showReferences', r[0].location.uri, r[0].location.range.start, r[0].refs);
+    };
   }
 
-  const calls = async () => {
-
-    let dc = await Promise.all<coc.Document, coc.Position>([workspace.document, window.getCursorPosition()])
-    let document : coc.Document = dc[0];
-    let cursor : coc.Position = dc[1];
-
-    let r = await client.sendRequest(requestCalls, {
-      textDocument: document.textDocument,
-      position: cursor ,
-    });
-
-    if (!r) {
-      window.showErrorMessage("command failed");
-    }
-
-    window.showMessage(JSON.stringify(r));
-
-  }
+  const calledBy = makeCallRequest(requestCalledBy)
+  const calls = makeCallRequest(requestCalls)
 
   const jumpToOtherFile = async () => {
     let document = await workspace.document;
@@ -143,27 +113,12 @@ export async function activate(context: ExtensionContext): Promise<void> {
     });
   };
 
-  const showDependencies = (kind: ALS_ShowDependenciesKind.Kind) => async () => {
-    let document = await workspace.document;
-
-    let r = await client.sendRequest(requestshowDependencies, {
-      textDocument: document.textDocument,
-      kind: kind,
-      showImplicit: true,
-    });
-
-    if (!r) {
-      window.showErrorMessage("command failed");
-    }
-
-  }
-
   context.subscriptions.push(
     commands.registerCommand('ada.otherFile', jumpToOtherFile),
     commands.registerCommand('ada.calledBy', calledBy),
     commands.registerCommand('ada.calls', calls),
-    commands.registerCommand('ada.showImported', showDependencies(ALS_ShowDependenciesKind.Show_Imported)),
-    commands.registerCommand('ada.showImporting', showDependencies(ALS_ShowDependenciesKind.Show_Importing)),
+    coc.listManager.registerList(new DependencyList(workspace.nvim, client, ALS_ShowDependenciesKind.Show_Importing)),
+    coc.listManager.registerList(new DependencyList(workspace.nvim, client, ALS_ShowDependenciesKind.Show_Imported)),
   );
   workspace.registerKeymap(
     ['n'],

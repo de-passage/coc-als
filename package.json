@@ -6,10 +6,15 @@
     "license": "MIT",
     "main": "lib/index.js",
     "keywords": [
-        "coc.nvim"
+        "coc.nvim",
+        "Ada",
+        "languageserver",
+        "LSP",
+        "ada_language_server",
+        ""
     ],
     "engines": {
-        "coc": "^0.0.80"
+        "coc": ">=0.0.80"
     },
     "scripts": {
         "lint": "eslint src --ext ts",
@@ -37,65 +42,9 @@
         "typescript": "^4.1.2"
     },
     "activationEvents": [
-        "*"
+        "onLanguage:ada"
     ],
     "contributes": {
-        "languages": [
-            {
-                "id": "ada",
-                "aliases": [
-                    "Ada",
-                    "ada"
-                ],
-                "extensions": [
-                    ".ada",
-                    ".adb",
-                    ".adc",
-                    ".ads"
-                ],
-                "configuration": "./language-configuration.json"
-            },
-            {
-                "id": "ali",
-                "aliases": [
-                    "ALI",
-                    "Ali",
-                    "ali",
-                    "Ada Library Information"
-                ],
-                "extensions": [
-                    ".ali"
-                ]
-            },
-            {
-                "id": "gpr",
-                "aliases": [
-                    "GNAT Project",
-                    "gpr"
-                ],
-                "extensions": [
-                    ".gpr"
-                ],
-                "configuration": "./gpr-language-configuration.json"
-            }
-        ],
-        "grammars": [
-            {
-                "language": "ada",
-                "scopeName": "source.ada",
-                "path": "./advanced/ada.tmLanguage.json"
-            },
-            {
-                "language": "ali",
-                "scopeName": "source.ali",
-                "path": "./syntaxes/ali.tmLanguage.json"
-            },
-            {
-                "language": "gpr",
-                "scopeName": "source.gpr",
-                "path": "./syntaxes/gpr.tmLanguage.json"
-            }
-        ],
         "snippets": [
             {
                 "language": "ada",
@@ -113,7 +62,7 @@
                 "ada.enabled": {
                     "type": "boolean",
                     "default": true,
-                    "description": "Enable Ada Extension"
+                    "description": "Enable coc-als extension"
                 },
                 "ada.trace.server": {
                     "scope": "window",
@@ -176,48 +125,18 @@
                 }
             }
         },
-        "problemMatchers": [
-            {
-                "name": "ada",
-                "label": "Gnat Ada Problem Matcher",
-                "fileLocation": [
-                    "autoDetect",
-                    "${workspaceRoot}"
-                ],
-                "pattern": [
-                    {
-                        "regexp": "^([^:]:?[^:]*):(\\d+):(\\d+):\\s+(warning|)(?:[:]\\s+)?(.*)$",
-                        "file": 1,
-                        "line": 2,
-                        "column": 3,
-                        "severity": 4,
-                        "message": 5
-                    }
-                ]
-            }
-        ],
-        "taskDefinitions": [
-            {
-                "type": "gprbuild",
-                "required": [
-                    "projectFile"
-                ],
-                "properties": {
-                    "projectFile": {
-                        "type": "string",
-                        "description": "The project file"
-                    },
-                    "checkFile": {
-                        "type": "boolean",
-                        "description": "Just check the current file only"
-                    }
-                }
-            }
-        ],
         "commands": [
             {
                 "command": "ada.otherFile",
-                "title": "Go to other Ada file"
+                "title": "Switch between specification and file"
+            },
+            {
+                "command": "ada.calledBy",
+                "title": "Calls the method 'textDocument/alsCalledBy' of ALS and populate the location list with the results"
+            },
+            {
+                "command": "ada.calls",
+                "title": "Calls the method 'textDocument/alsCalls' of ALS and populate the location list with the results"
             }
         ]
     },
