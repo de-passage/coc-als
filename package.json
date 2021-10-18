@@ -79,7 +79,7 @@
                     "scope": "resource",
                     "type": "string",
                     "default": "",
-                    "description": "Project file (*.gpr) for given workspace."
+                    "description": "Project file (*.gpr) for given workspace. This is required if there isn't exactly one project file in the root directory of the workspace."
                 },
                 "ada.scenarioVariables": {
                     "scope": "resource",
@@ -115,13 +115,13 @@
                     "scope": "resource",
                     "type": "boolean",
                     "default": true,
-                    "description": "The emission of diagnostics."
+                    "description": "Enable the emission of diagnostics."
                 },
                 "ada.renameInComments": {
                     "scope": "resource",
                     "type": "boolean",
                     "default": false,
-                    "description": "Enable editing Ada comments while executing `textDocument/rename` reques."
+                    "description": "Enable editing Ada comments while executing `textDocument/rename` request."
                 }
             }
         },
@@ -143,7 +143,6 @@
     "dependencies": {
         "fs": "^0.0.1-security",
         "process": "^0.11.10",
-        "vscode-languageclient": "^7.0.0",
         "vscode-languageserver-protocol": "^3.16.0"
     }
 }
