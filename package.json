@@ -1,8 +1,8 @@
 {
     "name": "coc-als",
-    "version": "0.0.1-development",
+    "version": "0.1.0",
     "description": "Ada Language Server support for coc.nvim",
-    "author": "Sylvain Leclercq <sylvain.leclercq@external.thalesgroup.com>",
+    "author": "Sylvain Leclercq <contact@sylvainleclercq.com>",
     "license": "MIT",
     "main": "lib/index.js",
     "keywords": [
