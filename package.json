@@ -59,6 +59,11 @@
             "type": "object",
             "title": "Ada configuration",
             "properties": {
+                "ada.serverBin": {
+                  "type":"string",
+                  "default": "ada_language_server",
+                  "description": "The name of the language server"
+                },
                 "ada.enabled": {
                     "type": "boolean",
                     "default": true,
