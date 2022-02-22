@@ -1,6 +1,6 @@
 {
     "name": "coc-als",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "description": "Ada Language Server support for coc.nvim",
     "author": "Sylvain Leclercq <contact@sylvainleclercq.com>",
     "license": "MIT",
@@ -13,6 +13,11 @@
         "ada_language_server",
         ""
     ],
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/de-passage/coc-als"
+    },
+    "homepage": "https://github.com/de-passage/coc-als",
     "engines": {
         "coc": ">=0.0.80"
     },
