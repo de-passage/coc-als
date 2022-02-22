@@ -1,5 +1,5 @@
 # coc-als
-Coc.nvim integration for the Ada Language Server. This plugin is a port of the [VSCode extension](https://github.com/AdaCore/ada_language_server/tree/master/integration/vscode/ada).
+[Coc.nvim](https://github.com/neoclide/coc.nvim) integration for the [Ada Language Server](https://github.com/AdaCore/ada_language_server). This plugin is a port of the [VSCode extension](https://github.com/AdaCore/ada_language_server/tree/master/integration/vscode/ada).
 
 ## Installation
 
@@ -46,7 +46,7 @@ Default configuration:
 coc-als tries to support all the features of the Ada Language Server but doesn't add any itself. ALS is under active developpement and doesn't yet have the level of polish of some other language servers.  
 Working features include:
 + Semantic completion
-+ Go to definition/implementation/type définition
++ Go to definition/implementation/type definition
 + Find references 
 + Search through symbols 
 + Call/called by trees 
@@ -62,14 +62,14 @@ Working features include:
 
 Ada is mostly used in corporate environments where you're likely to access the Internet from behind a proxy. Your tools need to be configured properly in order to work: 
 
-On Linux, session-wide configuration in your .profile.
+On Linux, add session-wide configuration in your .profile.
 ```bash
 export HTTP_PROXY=http://proxy.evil.corp:666
 export HTTPS_PROXY=http://proxy.evil.corp:666
-export NO_PROXY=.evil.corp
+export NO_PROXY=.evil.corp # suffixes that are part of the internal network
 ```
 
-Most plugin managers are Git based, configure your global proxy settings:
+Most plugin managers are Git based, configure your global git settings:
 ```bash
 git config --global http.proxy 'http://proxy.evil.corp:666'
 git config --global https.proxy 'http://proxy.evil.corp:666'
@@ -82,6 +82,12 @@ npm config set https-proxy http://username:password@host:port
 
 yarn config set proxy http://username:password@host:port
 yarn config set https-proxy http://username:password@host:port
+```
+
+If you see SSL related errors, try to add the following configuration: 
+```bash
+npm config set strict-ssl false
+yarn config set strict-ssl false
 ```
 
 Depending on your proxy configuration you may have to use a proxy address of the form `http://username:password@host:port`. Avoid this at all cost if you can, as anyone with reading rights over your home directory will have access to your password in clear text. Bash history is saved in a file, so calling commands on the fly from the command line is not a good option either. 
